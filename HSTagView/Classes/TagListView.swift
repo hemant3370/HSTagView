@@ -1,7 +1,6 @@
 //
-//  TagListView.swift
+//  HSTagListView.swift
 //
-//	Modified from https://github.com/OskarZhang/TagListView
 //  Created by Hemant Singh on 26/08/20.
 //  Copyright © 2020 Hemant Singh. All rights reserved.
 //
@@ -14,37 +13,36 @@ public class HSTagListView<T: HSIdentifialble> : UIView {
     var tags = [UIButton]()
     var containerView: UIView!
     
-    var hashtagsOffset: UIEdgeInsets = UIEdgeInsets(top: 20.0, left: 0.0, bottom: 0.0, right: 0.0)
-    var rowHeight: CGFloat = 35 + 10.0 //height of rows
-    var tagHorizontalPadding: CGFloat = 8 // padding between tags horizontally
-    var tagVerticalPadding: CGFloat = 8 // padding between tags vertically
-    var tagCombinedMargin: CGFloat = 16 * 2 // margin of left and right combined, text in tags are by default centered.
-    var tagCornerRadius: CGFloat = 14.0
+    public var contentOffset: UIEdgeInsets = UIEdgeInsets(top: 20.0, left: 10.0, bottom: 20.0, right: 10.0)
+    public var tagHorizontalPadding: CGFloat = 8 // padding between tags horizontally
+    public var tagVerticalPadding: CGFloat = 8 // padding between tags vertically
+    public var tagCombinedMargin: CGFloat = 16 * 2 // margin of left and right combined, text in tags are by default centered.
+    public var tagCornerRadius: CGFloat = 14.0
     
     public var onTagSelection: ((Int) -> Void)?
     
-    var color = UIColor.secondarySystemFill
+    public var color = UIColor.secondarySystemFill
     
-    var selectedColor = UIColor.green
+    public var selectedColor = UIColor.darkGray
     
-    var buttonBorderColor = UIColor.clear
+    public var buttonBorderColor = UIColor.clear
     
-    var textColor: UIColor = .label
+    public var textColor: UIColor = .label
 
-    var selectedTextColor = UIColor.white
+    public var selectedTextColor = UIColor.white
     
-    var font = UIFont.systemFont(ofSize: 16)
-    var selectedFont = UIFont.systemFont(ofSize: 16, weight: .semibold)
+    public var font = UIFont.systemFont(ofSize: 16)
+    public var selectedFont = UIFont.systemFont(ofSize: 16, weight: .semibold)
     
-    var allowMultiples = false
+    public var allowMultiples = true
     
-    var selectedItems = [Int : T]()
+    public var selectedItems = [Int : T]()
     
-    var selectedTags: [T] {
+    public var selectedTags: [T] {
         return Array(selectedItems.values)
     }
     
-    var selectedIndexes: [Int] {
+    public var selectedIndexes: [Int] {
         return Array(selectedItems.keys)
     }
     
@@ -56,21 +54,16 @@ public class HSTagListView<T: HSIdentifialble> : UIView {
         }
     }
     
-    var isRequired = false
-    
-    //
-    
+     public var isRequired = false
     
 	override public init(frame:CGRect) {
 		super.init(frame: frame)
 		containerView = UIView(frame: CGRect(x: 0.0, y: 0.0, width: frame.size.width, height: frame.size.height))
-		containerView.tag = 10
 		self.addSubview(containerView)
 	}
 	
     override public func awakeFromNib() {
 		containerView = UIView(frame: CGRect(x: 0.0, y: 0.0, width: frame.size.width, height: frame.size.height))
-		containerView.tag = 10
 		self.addSubview(containerView)
 	}
 	
@@ -107,12 +100,10 @@ public class HSTagListView<T: HSIdentifialble> : UIView {
         if let _ = selectedItems[index], let button = containerView.subviews.filter({ $0.tag == index && $0 is UIButton }).first as? UIButton {
             if allowMultiples || (!isRequired && selectedItems.count < tags.count) {
                 selectedItems.removeValue(forKey: index)
-                
                 button.titleLabel?.font = font
                 button.setTitleColor(textColor, for: .normal)
                 button.backgroundColor = color
             }
-            
         } else {
             if allowMultiples {
                 if index < allTags.count {
@@ -191,7 +182,7 @@ public class HSTagListView<T: HSIdentifialble> : UIView {
         button.frame = CGRect(x: button.frame.origin.x, y: button.frame.origin.y, width: buttonWidth, height: buttonHeight)
 
         if self.tags.count == 0 {
-            button.frame = CGRect(x: hashtagsOffset.left, y: hashtagsOffset.top, width: button.frame.width, height: button.frame.height)
+            button.frame = CGRect(x: contentOffset.left, y: contentOffset.top, width: button.frame.width, height: button.frame.height)
             self.containerView.addSubview(button)
             
         } else {
@@ -211,7 +202,7 @@ public class HSTagListView<T: HSIdentifialble> : UIView {
             self.containerView.frame = CGRect(x: self.containerView.frame.origin.x,
                                               y: self.containerView.frame.origin.y,
                                               width: self.frame.size.width,
-                                              height: bottomYLimit) //self.containerView.frame.height + rowHeight - tagVerticalPadding)
+                                              height: bottomYLimit)
         }
         self.frame = CGRect(x: self.frame.origin.x,
                             y: self.frame.origin.y,
@@ -221,7 +212,7 @@ public class HSTagListView<T: HSIdentifialble> : UIView {
     
     func getPositionForIndex(index:Int) -> CGPoint {
         if index < 1 {
-            return CGPoint(x: hashtagsOffset.left, y: hashtagsOffset.top)
+            return CGPoint(x: contentOffset.left, y: contentOffset.top)
         }
         let lastTagFrame = tags[index-1].frame
         let x = lastTagFrame.maxX + tagHorizontalPadding
@@ -263,9 +254,8 @@ public class HSTagListView<T: HSIdentifialble> : UIView {
         var newPoint = self.getPositionForIndex(index: index)
         
         if self.frame.width > 0.0 && (newPoint.x + self.tags[index].frame.width) >= self.frame.width {
-            let lastTagFrame = tags[index-1].frame
-            
-            newPoint = CGPoint(x: self.hashtagsOffset.left, y: lastTagFrame.maxY + tagVerticalPadding)
+            let lastMaxY = tags.map({ $0.frame.maxY }).max() ?? 0
+            newPoint = CGPoint(x: self.contentOffset.left, y: lastMaxY + tagVerticalPadding)
         }
         self.isOutofBounds(newPoint: newPoint, labelFrame: self.tags[index].frame)
         return CGRect(x: newPoint.x, y: newPoint.y, width: self.tags[index].frame.width, height: self.tags[index].frame.height)
