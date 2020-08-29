@@ -1,0 +1,6 @@
+framework module HSTagView {
+  umbrella header "HSTagView-umbrella.h"
+
+  export *
+  module * { export * }
+}
